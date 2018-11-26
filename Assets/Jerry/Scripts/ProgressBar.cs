@@ -18,6 +18,10 @@ public class ProgressBar : MonoBehaviour {
 	[SerializeField]
 	Button chestBtn;
 
+	GameObject clusters_Root;
+	[SerializeField]
+	GameObject cluster_prefab;
+
 	Slider _bar;
 	// Use this for initialization
 
@@ -45,7 +49,11 @@ public class ProgressBar : MonoBehaviour {
 		if (Claiming.instance != null) {
 			ResetProgress ();
 		}
+
+		clusters_Root = GameObject.Find ("Clusters");
+
 		instance = this;
+
 	}
 	
 	// Update is called once per frame
@@ -65,10 +73,12 @@ public class ProgressBar : MonoBehaviour {
 		case 1:
 			progressionValue = 0.2f;
 			GainKey (_rarity);
+			Chance_Spawn_Clusters ();
 			break;
 		case 2:
 			progressionValue = 0.15f;
 			GainKey (_rarity);
+			Chance_Spawn_Clusters ();
 			break;
 		case 3:
 			progressionValue = 0.10f;
@@ -110,6 +120,9 @@ public class ProgressBar : MonoBehaviour {
 
 		//Debug.Log (_targetValue);
 			StartCoroutine (AnimateBar (_targetValue));
+
+		//可以考虑删
+	//	RefreshChestAnim ();
 			
 	}
 
@@ -140,6 +153,8 @@ public class ProgressBar : MonoBehaviour {
 		BarColorChange ();
 
 		Tutorials.instance.Do_Tut_Upgrade ();
+
+		RefreshChestAnim ();
 	}
 
 
@@ -304,6 +319,29 @@ public class ProgressBar : MonoBehaviour {
 		key.SetActive (true);
 		chestBtn.enabled = true;
 		//有了钥匙之后就把箱子的状态调到shake
-		chestBtn.gameObject.GetComponent<Animator>().SetTrigger("Shake");
+		if (chestBtn.gameObject.GetComponent<Animator> ().GetCurrentAnimatorStateInfo (0).IsName ("Shaking") != true) {
+			chestBtn.gameObject.GetComponent<Animator> ().SetTrigger ("Shake");
+		}
+	}
+
+
+	public void Chance_Spawn_Clusters(){
+		if (Random.Range (0, 100) > 70) {//30% spawn cluster
+			Vector3 poss = new Vector3 (Random.Range (-170f, 170f), Random.Range (-270, 270), 0f);
+
+			GameObject go = Instantiate (cluster_prefab, poss, Quaternion.identity, clusters_Root.transform);
+			go.transform.localPosition = poss;
+
+		}
+	}
+
+	void RefreshChestAnim(){
+		Debug.Log ("???");
+		//当没有钥匙时，调暗箱子
+		if (key.activeSelf == false) {
+			chestBtn.gameObject.GetComponent<Image> ().color = new Vector4 (100, 100, 100, 100);
+		} else {//有钥匙的时候，刷新动画机状态
+			chestBtn.gameObject.GetComponent<Animator>().SetTrigger("Shake");
+		}
 	}
 }
