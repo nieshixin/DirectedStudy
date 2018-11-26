@@ -13,6 +13,10 @@ public class ProgressBar : MonoBehaviour {
 
 	float actualProgress;
 
+	[SerializeField]
+	GameObject key;
+	[SerializeField]
+	Button chestBtn;
 
 	Slider _bar;
 	// Use this for initialization
@@ -60,30 +64,39 @@ public class ProgressBar : MonoBehaviour {
 		switch ((int)_rarity) {
 		case 1:
 			progressionValue = 0.2f;
+			GainKey (_rarity);
 			break;
 		case 2:
 			progressionValue = 0.15f;
+			GainKey (_rarity);
 			break;
 		case 3:
 			progressionValue = 0.10f;
+			GainKey (_rarity);
 			break;
 		case 4:
 			progressionValue = 0.10f;
+			GainKey (_rarity);
 			break;
 		case 5:
 			progressionValue = 0.065f;
+			GainKey (_rarity);
 			break;
 		case 6:
 			progressionValue = 0.035f;
+			GainKey (_rarity);
 			break;
 		case 7:
 			progressionValue = 0.015f;
+			GainKey (_rarity);
 			break;
 		case 8:
 			progressionValue = 0.010f;
+			GainKey (_rarity);
 			break;
 		case 9:
 			progressionValue = 0.005f;
+			GainKey (_rarity);
 			break;
 
 		}
@@ -205,7 +218,8 @@ public class ProgressBar : MonoBehaviour {
 
 	public void StartClaming(){
 		Debug.Log ("开始最终结算");
-		Claiming.instance.GiveReward ();
+		//开始跳卡
+		Claiming.instance.PopRewardCards ();
 
 		Tutorials.instance.Do_Tut_Cashout ();
 
@@ -230,4 +244,65 @@ public class ProgressBar : MonoBehaviour {
 		IconChange ();
 	}
 
+	public void GainKey(float rar){
+		
+		switch ((int)rar) {
+		case 1:
+			if (Random.Range (0, 100) > 95) {
+				ObtainKey ();
+				Tutorials.instance.Do_Tut_Key ();
+			}
+			break;
+		case 2:
+			if (Random.Range (0, 100) > 80) {
+				ObtainKey ();
+				Tutorials.instance.Do_Tut_Key ();
+			}
+			break;
+		case 3:
+			if (Random.Range (0, 100) > 70) {
+				ObtainKey ();
+				Tutorials.instance.Do_Tut_Key ();
+			}
+			break;
+		case 4:
+			if (Random.Range (0, 100) > 60) {
+				ObtainKey ();
+				Tutorials.instance.Do_Tut_Key ();
+			}
+			break;
+		case 5:
+			if (Random.Range (0, 100) > 50) {
+				ObtainKey ();
+				Tutorials.instance.Do_Tut_Key ();
+			}
+			break;
+		case 6:
+			if (Random.Range (0, 100) > 40) {
+				ObtainKey ();
+			}
+			break;
+		case 7:
+			if (Random.Range (0, 100) > 30) {
+				ObtainKey ();
+			}
+			break;
+		case 8:
+			if (Random.Range (0, 100) > 20) {
+				ObtainKey ();
+			}
+			break;
+		case 9:
+			if (Random.Range (0, 100) > 5) {
+				ObtainKey ();
+			}
+			break;
+		}
+	}
+
+	public void ObtainKey(){
+		key.SetActive (true);
+		chestBtn.enabled = true;
+
+	}
 }

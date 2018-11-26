@@ -17,6 +17,9 @@ public class Tutorials : MonoBehaviour {
 	public GameObject tut_upgrade;
 	 bool upgrade_tut_showed = false;
 
+	public GameObject tut_key;
+	bool key_tut_showed = false;
+
 	void Start () {
 		instance = this;
 	}
@@ -48,6 +51,13 @@ public class Tutorials : MonoBehaviour {
 		if (!upgrade_tut_showed) {
 			tut_upgrade.SetActive (true);
 			upgrade_tut_showed = true;
+		}
+	}
+
+	public void Do_Tut_Key(){
+		if (!key_tut_showed) {
+			tut_key.SetActive (true);
+			key_tut_showed = true;
 		}
 	}
 }

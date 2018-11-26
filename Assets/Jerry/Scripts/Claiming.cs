@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using DentedPixel;
+
 public class Claiming : MonoBehaviour {
 	[SerializeField]
 	GameObject slot_1;
@@ -17,6 +19,14 @@ public class Claiming : MonoBehaviour {
 	GameObject slot_6;
 
 	List<GameObject> slots;
+
+	[SerializeField]
+	List<Vector3> slots_origin_pos;
+
+	[SerializeField]
+	GameObject collectPos;
+	[SerializeField]
+	Animator ReceiverAnim;
 
 	[HideInInspector]
 	public Color32 whito;
@@ -67,14 +77,30 @@ public class Claiming : MonoBehaviour {
 
 		instance = this;
 
+
+		BackUpOriginalPos ();
+
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		
 	}
+	void BackUpOriginalPos(){
+		//把slots中的所有卡牌初始位置备份，以便后面移动动画的时候好还原位置
+		slots_origin_pos = new List<Vector3>();
 
-	public void GiveReward(){
+		for (int i = 0; i < slots.Count; i++) {
+			Vector3 CopyPos = slots [i].transform.position;
+			slots_origin_pos.Add(new Vector3 (CopyPos.x, CopyPos.y, CopyPos.z));
+		}
+		Debug.Log (slots_origin_pos.Count);
+
+	}
+
+
+
+	public void PopRewardCards(){
 
 		Debug.Log ("give reward: " + ProgressBar.instance._rarity);
 
@@ -154,15 +180,22 @@ public class Claiming : MonoBehaviour {
 
 	public IEnumerator PopSequence(int num, int rarity){
 
-		for (int i = 0; i < num; i++) {
+		for (int i = 0; i <= num; i++) {
+			
+			if (i == num) {//在最后一次执行的时候，激活收集宝箱 (这样做是为了避免过早点击宝箱出现bug，所以让宝箱最后出现）
+				transform.Find ("ClaimPanel").Find ("Receiver").gameObject.SetActive (true);
+				yield return new WaitForSeconds (0.2f);
+			} else {
+				
+			
+				// calculate occur rate of each car and set card color
+				slots [i].GetComponent<Image> ().color = CalcProb (rarity);
 
-			// calculate occur rate of each car and set card color
-			slots[i].GetComponent<Image>().color = CalcProb(rarity);
+				//activate card, show animation
+				slots [i].SetActive (true);
+				yield return new WaitForSeconds (0.2f);
+			}
 
-			//activate card, show animation
-			slots [i].SetActive (true);
-
-			yield return new WaitForSeconds (0.8f);
 		}
 	}
 
@@ -173,5 +206,87 @@ public class Claiming : MonoBehaviour {
 		slot_4.SetActive(false);
 		slot_5.SetActive(false);
 		slot_6.SetActive(false);
+	}
+
+	public void StartCollecting(){
+		//这个function就是开始飞卡
+		foreach (var go in slots) {
+			//双重筛选要飞得卡
+			if (go.activeSelf) {//是被激活的
+				//是没有被单独点过的
+				if(go.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("Shrinked")!= true){
+				LeanTween.move (go, collectPos.transform.position, 0.5f).setOnComplete (PopCollectChest);
+
+				go.GetComponent<Animator> ().SetTrigger ("Shrink");
+				Debug.Log ("collected" + go.name);
+				}
+			}
+		}
+
+	}
+
+	public void ComepleteCollecting(){
+		for (int i = 0; i < slots.Count; i++) {
+			slots [i].transform.position = slots_origin_pos [i];
+		}
+		Debug.Log ("重置所有卡牌位置");
+		//完成收集后，把所有slot位置还原
+		//还原位置后，关闭所有的slots
+		CloseAllSlots();
+
+		//之后有三个需要调整开关
+		//一个需要开启receiver的button component，
+		//有三个个go需要关闭：receiver的go，close button的go ,panel的go   需要按照顺序(从下到上）
+
+		GameObject panel = transform.Find("ClaimPanel").gameObject;
+		//开启的
+		panel.transform.Find ("Receiver").GetComponent<Button>().enabled = true;
+		//关闭的
+		panel.transform.Find ("Receiver").gameObject.SetActive (false);
+		panel.transform.Find ("close").gameObject.SetActive (false);
+		panel.SetActive(false);
+
+
+	}
+
+	void PopCollectChest(){
+		ReceiverAnim.SetTrigger ("Pop");
+
+		//最后的check，如果是最后一张卡，则直接自动call completeCollecting
+		float activeCount = 0;
+		float collectedCount = 0;
+
+		for (int i = 0; i < slots.Count; i++) {
+			if (slots [i].activeSelf) {
+				activeCount++;
+			}
+		}
+		for (int i = 0; i < slots.Count; i++) {
+			if (slots[i].GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("Shrinked") == true ) {
+				collectedCount++;
+			}
+		}
+
+		if (activeCount == collectedCount) {
+			////////这里就相当于帮玩家点击了收集宝箱按钮
+			GameObject panel = transform.Find("ClaimPanel").gameObject;
+			panel.transform.Find ("Receiver").GetComponent<Button>().enabled = false;
+			panel.transform.Find ("close").gameObject.SetActive (true);
+			Debug.Log ("没有剩余可点击的卡了");
+		}
+		Debug.Log (activeCount + "和" + collectedCount);
+	}
+
+	//for cards onclicked,not used in methods
+	public void CardOnclickFly(GameObject go){
+		//和集体飞卡method是一样的，只不过掰开了， 集体飞卡要干什么这个就要干什么
+
+		//飞卡
+		LeanTween.move (go, ReceiverAnim.transform.position, 0.5f).setOnComplete (PopCollectChest);
+		//缩小动画
+		go.GetComponent<Animator> ().SetTrigger ("Shrink");
+		Debug.Log (go.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("Shrinked"));
+
+
 	}
 }
