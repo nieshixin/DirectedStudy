@@ -303,6 +303,7 @@ public class ProgressBar : MonoBehaviour {
 	public void ObtainKey(){
 		key.SetActive (true);
 		chestBtn.enabled = true;
-
+		//有了钥匙之后就把箱子的状态调到shake
+		chestBtn.gameObject.GetComponent<Animator>().SetTrigger("Shake");
 	}
 }
